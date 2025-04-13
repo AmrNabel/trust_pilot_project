@@ -19,9 +19,13 @@ import ServiceCard from '@/components/ServiceCard';
 import { getServices, searchServices } from '@/lib/firestore';
 import { Service } from '@/lib/firestore';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useLanguage } from '@/lib/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 
 export default function Home() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const { user, isAdmin } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -95,27 +99,27 @@ export default function Home() {
         }}
       >
         <Typography variant='h4' component='h1' gutterBottom fontWeight='bold'>
-          Find and Review Services
+          {t('findAndReviewServices')}
         </Typography>
 
         {/* Add Service button for any logged in user */}
-        {user && (
-          <Button
-            component={Link}
-            href='/service/add'
-            variant='contained'
-            color='primary'
-            startIcon={<AddBusiness />}
-            sx={{ ml: 2 }}
-          >
-            Add Service
-          </Button>
-        )}
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          {user && (
+            <Button
+              component={Link}
+              href='/service/add'
+              variant='contained'
+              color='primary'
+              startIcon={<AddBusiness />}
+            >
+              {t('addService')}
+            </Button>
+          )}
+        </Box>
       </Box>
 
       <Typography variant='body1' color='text.secondary' paragraph>
-        Discover top-rated services in your area. Read reviews from real people
-        and share your own experiences.
+        {t('discoverServices')}
       </Typography>
 
       {/* Search Bar */}
@@ -134,10 +138,10 @@ export default function Home() {
       >
         <InputBase
           sx={{ ml: 1, flex: 1 }}
-          placeholder='Search services by name'
+          placeholder={t('searchServices')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          inputProps={{ 'aria-label': 'search services by name' }}
+          inputProps={{ 'aria-label': t('searchServices') }}
         />
         <Divider sx={{ height: 28, m: 0.5 }} orientation='vertical' />
         <IconButton sx={{ p: '10px' }} aria-label='search'>
@@ -164,9 +168,7 @@ export default function Home() {
       ) : (
         <>
           {services.length === 0 ? (
-            <Alert severity='info'>
-              No services found matching your search criteria.
-            </Alert>
+            <Alert severity='info'>{t('noServicesFound')}</Alert>
           ) : (
             <Grid container spacing={3}>
               {services.map((service) => (

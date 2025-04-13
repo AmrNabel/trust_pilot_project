@@ -25,6 +25,7 @@ import { ArrowBack, AddBusiness, Upload, Delete } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { createService } from '@/lib/firestore';
 import { FormSubmitEvent, ServiceCategory } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 // Array of service categories
 const SERVICE_CATEGORIES: ServiceCategory[] = [
@@ -52,6 +53,7 @@ const ALLOWED_FILE_TYPES = [
 ];
 
 export default function AddServicePage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -225,7 +227,7 @@ export default function AddServicePage() {
     return (
       <Container maxWidth='md' sx={{ py: 4 }}>
         <Alert severity='error' sx={{ mb: 3 }}>
-          {error || 'You must be logged in to add a service'}
+          {error || t('loginRequired')}
         </Alert>
         <Button
           component={Link}
@@ -233,7 +235,7 @@ export default function AddServicePage() {
           startIcon={<ArrowBack />}
           variant='contained'
         >
-          Go to Login
+          {t('login')}
         </Button>
       </Container>
     );
@@ -247,26 +249,24 @@ export default function AddServicePage() {
         startIcon={<ArrowBack />}
         sx={{ mb: 3 }}
       >
-        Back to Services
+        {t('backToServices')}
       </Button>
 
       <Paper sx={{ p: 4, borderRadius: 2 }} elevation={3}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
           <AddBusiness fontSize='large' color='primary' />
           <Typography variant='h4' component='h1'>
-            Add New Service
+            {t('addNewService')}
           </Typography>
         </Box>
 
         <Alert severity='info' sx={{ mb: 3 }}>
-          Your submission will be reviewed by our administrators before being
-          published. This typically takes 1-2 business days.
+          {t('pendingApprovalInfo')}
         </Alert>
 
         {success ? (
           <Alert severity='success' sx={{ my: 2 }}>
-            Service submitted successfully! It will be visible after admin
-            approval.
+            {t('serviceSubmitted')}
           </Alert>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -277,34 +277,33 @@ export default function AddServicePage() {
             )}
 
             <Typography variant='body1' color='text.secondary' paragraph>
-              Create a new service that users can review. All fields are
-              required except image.
+              {t('createServiceDesc')}
             </Typography>
 
             <Divider sx={{ my: 2 }} />
 
             <TextField
               fullWidth
-              label='Service Name'
+              label={t('serviceName')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               margin='normal'
               required
               inputProps={{ maxLength: 100 }}
-              helperText={`${name.length}/100 characters`}
+              helperText={`${name.length}/100 ${t('characters')}`}
             />
 
             <FormControl fullWidth margin='normal' required>
-              <InputLabel id='category-label'>Category</InputLabel>
+              <InputLabel id='category-label'>{t('category')}</InputLabel>
               <Select
                 labelId='category-label'
                 value={category}
-                label='Category'
+                label={t('category')}
                 onChange={(e) => setCategory(e.target.value as ServiceCategory)}
               >
                 {SERVICE_CATEGORIES.map((cat) => (
                   <MenuItem key={cat} value={cat}>
-                    {cat}
+                    {t(cat.toLowerCase())}
                   </MenuItem>
                 ))}
               </Select>
@@ -312,33 +311,33 @@ export default function AddServicePage() {
 
             <TextField
               fullWidth
-              label='Location'
+              label={t('location')}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               margin='normal'
               required
               inputProps={{ maxLength: 100 }}
-              helperText={`${location.length}/100 characters`}
+              helperText={`${location.length}/100 ${t('characters')}`}
             />
 
             <TextField
               fullWidth
               multiline
               rows={4}
-              label='Description'
+              label={t('description')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder='Describe this service in detail'
+              placeholder={t('describeService')}
               margin='normal'
               required
               inputProps={{ maxLength: 500 }}
-              helperText={`${description.length}/500 characters`}
+              helperText={`${description.length}/500 ${t('characters')}`}
             />
 
             {/* Image Upload Section */}
             <Box sx={{ mt: 3, mb: 2 }}>
               <Typography variant='subtitle1' gutterBottom>
-                Service Image (Optional)
+                {t('serviceImage')}
               </Typography>
               <input
                 type='file'
@@ -368,9 +367,9 @@ export default function AddServicePage() {
                   <Upload
                     sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }}
                   />
-                  <Typography>Click to upload an image (max 5MB)</Typography>
+                  <Typography>{t('uploadImage')}</Typography>
                   <Typography variant='body2' color='text.secondary'>
-                    JPEG, PNG, GIF, or WEBP
+                    {t('imageTypes')}
                   </Typography>
                 </Box>
               ) : (
@@ -413,10 +412,7 @@ export default function AddServicePage() {
                 <FormHelperText error>{imageError}</FormHelperText>
               )}
 
-              <FormHelperText>
-                Adding an image helps users recognize your service. For best
-                results, use a clear, high-quality image.
-              </FormHelperText>
+              <FormHelperText>{t('imageHelp')}</FormHelperText>
             </Box>
 
             <Box sx={{ mt: 4 }}>
@@ -430,7 +426,7 @@ export default function AddServicePage() {
                   loading ? <CircularProgress size={20} /> : <AddBusiness />
                 }
               >
-                {loading ? 'Creating...' : 'Add Service'}
+                {loading ? t('creating') : t('addService')}
               </Button>
             </Box>
           </form>

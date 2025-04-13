@@ -35,10 +35,13 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import ThemeToggle from './ThemeToggle';
 import NavbarLogo from './NavbarLogo';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -99,7 +102,7 @@ export default function Navbar() {
                 sx={{ my: 2, color: 'text.primary', display: 'block' }}
                 startIcon={<Home />}
               >
-                Home
+                {t('home')}
               </Button>
 
               {user && (
@@ -109,7 +112,7 @@ export default function Navbar() {
                   sx={{ my: 2, color: 'text.primary', display: 'block' }}
                   startIcon={<AddBusiness />}
                 >
-                  Add Service
+                  {t('addService')}
                 </Button>
               )}
 
@@ -120,19 +123,20 @@ export default function Navbar() {
                   sx={{ my: 2, color: 'text.primary', display: 'block' }}
                   startIcon={<AdminPanelSettings />}
                 >
-                  Admin
+                  {t('adminPanel')}
                 </Button>
               )}
             </Box>
           )}
 
-          {/* Theme Toggle & User Menu */}
+          {/* Theme Toggle, Language Selector & User Menu */}
           <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center' }}>
             <ThemeToggle />
+            <LanguageSelector />
 
             {user ? (
               <>
-                <Tooltip title='User menu'>
+                <Tooltip title={t('profile')}>
                   <IconButton onClick={handleUserMenuOpen} sx={{ ml: 1 }}>
                     <Avatar
                       alt={user.displayName || 'User'}
@@ -160,7 +164,7 @@ export default function Navbar() {
                 >
                   <MenuItem onClick={handleUserMenuClose} disabled>
                     <Typography variant='body2' color='text.secondary'>
-                      Signed in as:{' '}
+                      {t('signedInAs')}{' '}
                       <strong>{user.displayName || user.email}</strong>
                     </Typography>
                   </MenuItem>
@@ -170,21 +174,21 @@ export default function Navbar() {
                     href='/profile'
                     onClick={handleUserMenuClose}
                   >
-                    Profile
+                    {t('profile')}
                   </MenuItem>
                   <MenuItem
                     component={Link}
                     href='/my-reviews'
                     onClick={handleUserMenuClose}
                   >
-                    My Reviews
+                    {t('myReviews')}
                   </MenuItem>
                   <Divider />
                   <MenuItem onClick={handleLogout}>
                     <ListItemIcon>
                       <Logout fontSize='small' />
                     </ListItemIcon>
-                    Logout
+                    {t('logout')}
                   </MenuItem>
                 </Menu>
               </>
@@ -196,120 +200,135 @@ export default function Navbar() {
                 sx={{ ml: 1 }}
                 startIcon={<Login />}
               >
-                Sign In
+                {t('signIn')}
               </Button>
             )}
           </Box>
+
+          {/* Mobile Drawer */}
+          <Drawer
+            anchor='left'
+            open={isMobile && drawerOpen}
+            onClose={toggleDrawer}
+            sx={{
+              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 },
+            }}
+          >
+            <Box sx={{ p: 2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
+              >
+                <NavbarLogo />
+                <Box sx={{ display: 'flex' }}>
+                  <ThemeToggle />
+                  <LanguageSelector />
+                </Box>
+              </Box>
+              <Divider sx={{ my: 1 }} />
+              <List>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={Link}
+                    href='/'
+                    onClick={toggleDrawer}
+                  >
+                    <ListItemIcon>
+                      <Home />
+                    </ListItemIcon>
+                    <ListItemText primary={t('home')} />
+                  </ListItemButton>
+                </ListItem>
+
+                {user && (
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href='/service/add'
+                      onClick={toggleDrawer}
+                    >
+                      <ListItemIcon>
+                        <AddBusiness />
+                      </ListItemIcon>
+                      <ListItemText primary={t('addService')} />
+                    </ListItemButton>
+                  </ListItem>
+                )}
+
+                {isAdmin && (
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href='/admin'
+                      onClick={toggleDrawer}
+                    >
+                      <ListItemIcon>
+                        <AdminPanelSettings />
+                      </ListItemIcon>
+                      <ListItemText primary={t('adminPanel')} />
+                    </ListItemButton>
+                  </ListItem>
+                )}
+
+                {user ? (
+                  <>
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        component={Link}
+                        href='/profile'
+                        onClick={toggleDrawer}
+                      >
+                        <ListItemIcon>
+                          <AccountCircle />
+                        </ListItemIcon>
+                        <ListItemText primary={t('profile')} />
+                      </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        component={Link}
+                        href='/my-reviews'
+                        onClick={toggleDrawer}
+                      >
+                        <ListItemIcon>
+                          <RateReview />
+                        </ListItemIcon>
+                        <ListItemText primary={t('myReviews')} />
+                      </ListItemButton>
+                    </ListItem>
+                    <Divider sx={{ my: 1 }} />
+                    <ListItem disablePadding>
+                      <ListItemButton onClick={handleLogout}>
+                        <ListItemIcon>
+                          <Logout />
+                        </ListItemIcon>
+                        <ListItemText primary={t('logout')} />
+                      </ListItemButton>
+                    </ListItem>
+                  </>
+                ) : (
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href='/login'
+                      onClick={toggleDrawer}
+                    >
+                      <ListItemIcon>
+                        <Login />
+                      </ListItemIcon>
+                      <ListItemText primary={t('signIn')} />
+                    </ListItemButton>
+                  </ListItem>
+                )}
+              </List>
+            </Box>
+          </Drawer>
         </Toolbar>
       </Container>
-
-      {/* Mobile Drawer */}
-      <Drawer
-        anchor='left'
-        open={drawerOpen && isMobile}
-        onClose={toggleDrawer}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: '75%',
-            maxWidth: 280,
-            pt: 2,
-          },
-        }}
-      >
-        <List sx={{ width: '100%' }}>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} href='/' onClick={toggleDrawer}>
-              <ListItemIcon>
-                <Home />
-              </ListItemIcon>
-              <ListItemText primary='Home' />
-            </ListItemButton>
-          </ListItem>
-
-          {user && (
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                href='/service/add'
-                onClick={toggleDrawer}
-              >
-                <ListItemIcon>
-                  <AddBusiness />
-                </ListItemIcon>
-                <ListItemText primary='Add Service' />
-              </ListItemButton>
-            </ListItem>
-          )}
-
-          {isAdmin && (
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                href='/admin'
-                onClick={toggleDrawer}
-              >
-                <ListItemIcon>
-                  <AdminPanelSettings />
-                </ListItemIcon>
-                <ListItemText primary='Admin Panel' />
-              </ListItemButton>
-            </ListItem>
-          )}
-
-          <Divider sx={{ my: 1 }} />
-
-          {user ? (
-            <>
-              <ListItem disablePadding>
-                <ListItemButton
-                  component={Link}
-                  href='/profile'
-                  onClick={toggleDrawer}
-                >
-                  <ListItemIcon>
-                    <AccountCircle />
-                  </ListItemIcon>
-                  <ListItemText primary='Profile' />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  component={Link}
-                  href='/my-reviews'
-                  onClick={toggleDrawer}
-                >
-                  <ListItemIcon>
-                    <RateReview />
-                  </ListItemIcon>
-                  <ListItemText primary='My Reviews' />
-                </ListItemButton>
-              </ListItem>
-              <Divider sx={{ my: 1 }} />
-              <ListItem disablePadding>
-                <ListItemButton onClick={handleLogout}>
-                  <ListItemIcon>
-                    <Logout />
-                  </ListItemIcon>
-                  <ListItemText primary='Logout' />
-                </ListItemButton>
-              </ListItem>
-            </>
-          ) : (
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                href='/login'
-                onClick={toggleDrawer}
-              >
-                <ListItemIcon>
-                  <Login />
-                </ListItemIcon>
-                <ListItemText primary='Sign In' />
-              </ListItemButton>
-            </ListItem>
-          )}
-        </List>
-      </Drawer>
     </AppBar>
   );
 }

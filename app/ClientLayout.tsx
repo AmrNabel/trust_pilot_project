@@ -9,8 +9,13 @@ import {
   CircularProgress,
   Box,
 } from '@mui/material';
-import Navbar from '@/components/Navbar';
+import Navbar from '@/app/components/Navbar';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
+import { LanguageProvider } from '@/lib/contexts/LanguageContext';
+import useEnsureLanguage from '@/lib/i18n/ensure-language';
+
+// Import i18n configuration
+import '@/lib/i18n/i18n';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -46,6 +51,12 @@ const theme = createTheme({
   },
 });
 
+// Language sync component
+const LanguageSynchronizer = ({ children }: { children: React.ReactNode }) => {
+  useEnsureLanguage();
+  return <>{children}</>;
+};
+
 export default function ClientLayout({
   children,
 }: {
@@ -61,22 +72,26 @@ export default function ClientLayout({
 
   return (
     <AuthProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Navbar />
-        <main
-          className='container'
-          style={{ paddingTop: '1.5rem', paddingBottom: '2rem' }}
-        >
-          {!isHydrated ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            children
-          )}
-        </main>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <LanguageSynchronizer>
+            <Navbar />
+            <main
+              className='container'
+              style={{ paddingTop: '1.5rem', paddingBottom: '2rem' }}
+            >
+              {!isHydrated ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                children
+              )}
+            </main>
+          </LanguageSynchronizer>
+        </ThemeProvider>
+      </LanguageProvider>
     </AuthProvider>
   );
 }
