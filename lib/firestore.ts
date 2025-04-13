@@ -282,3 +282,97 @@ export const updateServiceStatus = async (
     await deleteDoc(serviceRef);
   }
 };
+
+// Get reviews by user ID (for My Reviews page)
+export const getReviewsByUserId = async (userId: string): Promise<Review[]> => {
+  const reviewsCollection = collection(db, 'reviews');
+  const q = query(
+    reviewsCollection,
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc')
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => {
+    return { id: doc.id, ...doc.data() } as Review;
+  });
+};
+
+// Update a review
+export const updateReview = async (
+  reviewId: string,
+  reviewData: {
+    rating?: number;
+    comment?: string;
+    imageUrl?: any;
+  },
+  imageFile?: File,
+  removeImage: boolean = false
+): Promise<void> => {
+  const reviewRef = doc(db, 'reviews', reviewId);
+  const reviewSnap = await getDoc(reviewRef);
+
+  if (!reviewSnap.exists()) {
+    throw new Error('Review does not exist');
+  }
+
+  const currentReview = reviewSnap.data() as Review;
+
+  // Prepare updated data
+  const updateData = { ...reviewData };
+
+  // Handle image updates
+  if (imageFile) {
+    // Upload new image
+    const imageRef = ref(storage, `reviews/${uuidv4()}`);
+    await uploadBytes(imageRef, imageFile);
+    updateData.imageUrl = await getDownloadURL(imageRef);
+  } else if (removeImage) {
+    // Remove existing image
+    updateData.imageUrl = null;
+  }
+
+  // Update review with new data
+  await updateDoc(reviewRef, {
+    ...updateData,
+    // For imageUrl:
+    // - If new image uploaded: use new URL
+    // - If image removed: use null
+    // - Otherwise: keep existing (this field won't be included in updateData)
+    // Reviews that are edited need to be approved again
+    pending: true,
+  });
+
+  // Update service rating after a review is updated
+  await updateServiceRating(currentReview.serviceId);
+};
+
+// Delete a review
+export const deleteReview = async (reviewId: string): Promise<void> => {
+  const reviewRef = doc(db, 'reviews', reviewId);
+  const reviewSnap = await getDoc(reviewRef);
+
+  if (!reviewSnap.exists()) {
+    throw new Error('Review does not exist');
+  }
+
+  const review = reviewSnap.data() as Review;
+  await deleteDoc(reviewRef);
+
+  // Update service rating after a review is deleted
+  await updateServiceRating(review.serviceId);
+};
+
+// Get a single review by ID
+export const getReviewById = async (
+  reviewId: string
+): Promise<Review | null> => {
+  const reviewRef = doc(db, 'reviews', reviewId);
+  const reviewSnap = await getDoc(reviewRef);
+
+  if (!reviewSnap.exists()) {
+    return null;
+  }
+
+  return { id: reviewId, ...reviewSnap.data() } as Review;
+};
