@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Typography,
   Grid,
@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon, AddBusiness } from '@mui/icons-material';
 import ServiceCard from '@/components/ServiceCard';
-import { getServices } from '@/lib/firestore';
+import { getServices, searchServices } from '@/lib/firestore';
 import { Service } from '@/lib/firestore';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
@@ -24,19 +24,18 @@ import Link from 'next/link';
 export default function Home() {
   const { user, isAdmin } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
-  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Fetch services on component mount
+  // Fetch all services on component mount
   useEffect(() => {
     const fetchServices = async () => {
       try {
         setLoading(true);
         const servicesData = await getServices();
         setServices(servicesData);
-        setFilteredServices(servicesData);
         setError(null);
       } catch (err) {
         console.error('Error fetching services:', err);
@@ -49,25 +48,41 @@ export default function Home() {
     fetchServices();
   }, []);
 
-  // Handle search functionality
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!searchQuery.trim()) {
-      setFilteredServices(services);
+  // Debounced search function
+  const debouncedSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      // If search is empty, fetch all services
+      try {
+        const allServices = await getServices();
+        setServices(allServices);
+      } catch (err) {
+        console.error('Error fetching services:', err);
+        setError('Failed to load services. Please try again later.');
+      }
       return;
     }
 
-    const query = searchQuery.toLowerCase();
-    const filtered = services.filter(
-      (service) =>
-        service.name.toLowerCase().includes(query) ||
-        service.category.toLowerCase().includes(query) ||
-        service.location.toLowerCase().includes(query)
-    );
+    try {
+      setIsSearching(true);
+      const results = await searchServices(query);
+      setServices(results);
+      setError(null);
+    } catch (err) {
+      console.error('Error searching services:', err);
+      setError('Failed to search services. Please try again later.');
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
-    setFilteredServices(filtered);
-  };
+  // Handle search as user types
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      debouncedSearch(searchQuery);
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, debouncedSearch]);
 
   return (
     <Box sx={{ py: 4 }}>
@@ -114,18 +129,19 @@ export default function Home() {
           maxWidth: 600,
         }}
         elevation={2}
-        onSubmit={handleSearch}
+        // Remove the onSubmit handler since we're auto-searching
+        onSubmit={(e) => e.preventDefault()}
       >
         <InputBase
           sx={{ ml: 1, flex: 1 }}
-          placeholder='Search services by name, category, or location'
+          placeholder='Search services by name'
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          inputProps={{ 'aria-label': 'search services' }}
+          inputProps={{ 'aria-label': 'search services by name' }}
         />
         <Divider sx={{ height: 28, m: 0.5 }} orientation='vertical' />
-        <IconButton type='submit' sx={{ p: '10px' }} aria-label='search'>
-          <SearchIcon />
+        <IconButton sx={{ p: '10px' }} aria-label='search'>
+          {isSearching ? <CircularProgress size={24} /> : <SearchIcon />}
         </IconButton>
       </Paper>
 
@@ -147,13 +163,13 @@ export default function Home() {
         </Grid>
       ) : (
         <>
-          {filteredServices.length === 0 ? (
+          {services.length === 0 ? (
             <Alert severity='info'>
               No services found matching your search criteria.
             </Alert>
           ) : (
             <Grid container spacing={3}>
-              {filteredServices.map((service) => (
+              {services.map((service) => (
                 <Grid item xs={12} sm={6} md={4} key={service.id}>
                   <ServiceCard service={service} />
                 </Grid>

@@ -210,3 +210,25 @@ export const createService = async (
 
   return serviceRef.id;
 };
+
+// Add this new function to search services
+export const searchServices = async (
+  searchTerm: string
+): Promise<Service[]> => {
+  if (!searchTerm.trim()) {
+    return getServices(); // Return all services if search term is empty
+  }
+
+  const searchTermLower = searchTerm.toLowerCase();
+
+  // Get all services first (could be optimized with Firestore indexing for larger applications)
+  const servicesCollection = collection(db, 'services');
+  const snapshot = await getDocs(servicesCollection);
+
+  // Filter the services client-side based ONLY on the service name
+  const filteredServices = snapshot.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() } as Service))
+    .filter((service) => service.name.toLowerCase().includes(searchTermLower));
+
+  return filteredServices;
+};
