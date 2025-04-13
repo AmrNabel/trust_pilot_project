@@ -43,6 +43,7 @@ import { useTranslation } from 'react-i18next';
 import ThemeToggle from './ThemeToggle';
 import NavbarLogo from './NavbarLogo';
 import LanguageSelector from '@/components/LanguageSelector';
+import TranslatedText from './TranslatedText';
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -190,7 +191,7 @@ export default function Navbar() {
                   }}
                   startIcon={<Home />}
                 >
-                  {t('home')}
+                  <TranslatedText textKey='home' fallback='Home' />
                 </Button>
 
                 {user && (
@@ -228,7 +229,10 @@ export default function Navbar() {
                     }}
                     startIcon={<AddBusiness />}
                   >
-                    {t('addService')}
+                    <TranslatedText
+                      textKey='addService'
+                      fallback='Add Service'
+                    />
                   </Button>
                 )}
 
@@ -267,7 +271,10 @@ export default function Navbar() {
                     }}
                     startIcon={<AdminPanelSettings />}
                   >
-                    {t('adminPanel')}
+                    <TranslatedText
+                      textKey='adminPanel'
+                      fallback='Admin Panel'
+                    />
                   </Button>
                 )}
               </Box>
@@ -297,7 +304,11 @@ export default function Navbar() {
               {user ? (
                 <Fade in={true} style={{ transitionDelay: '100ms' }}>
                   <>
-                    <Tooltip title={t('profile')}>
+                    <Tooltip
+                      title={
+                        <TranslatedText textKey='profile' fallback='Profile' />
+                      }
+                    >
                       <IconButton
                         onClick={handleUserMenuOpen}
                         sx={{
@@ -352,7 +363,10 @@ export default function Navbar() {
                     >
                       <Box sx={{ px: 2, py: 1 }}>
                         <Typography variant='body2' color='text.secondary'>
-                          {t('signedInAs')}{' '}
+                          <TranslatedText
+                            textKey='signedInAs'
+                            fallback='Signed in as'
+                          />
                         </Typography>
                         <Typography variant='subtitle2' fontWeight={600} noWrap>
                           {user.displayName || user.email}
@@ -372,7 +386,7 @@ export default function Navbar() {
                         <ListItemIcon>
                           <Person fontSize='small' />
                         </ListItemIcon>
-                        {t('profile')}
+                        <TranslatedText textKey='profile' fallback='Profile' />
                       </MenuItem>
                       <MenuItem
                         component={Link}
@@ -387,7 +401,10 @@ export default function Navbar() {
                         <ListItemIcon>
                           <RateReview fontSize='small' />
                         </ListItemIcon>
-                        {t('myReviews')}
+                        <TranslatedText
+                          textKey='myReviews'
+                          fallback='My Reviews'
+                        />
                       </MenuItem>
                       <Divider sx={{ my: 1 }} />
                       <MenuItem
@@ -401,7 +418,7 @@ export default function Navbar() {
                         <ListItemIcon>
                           <Logout fontSize='small' />
                         </ListItemIcon>
-                        {t('logout')}
+                        <TranslatedText textKey='logout' fallback='Logout' />
                       </MenuItem>
                     </Menu>
                   </>
@@ -437,7 +454,7 @@ export default function Navbar() {
                     }}
                     startIcon={<Login />}
                   >
-                    {t('signIn')}
+                    <TranslatedText textKey='signIn' fallback='Sign In' />
                   </Button>
                 </Fade>
               )}
@@ -498,7 +515,10 @@ export default function Navbar() {
                     </Avatar>
                     <Box>
                       <Typography variant='body2' color='text.secondary'>
-                        {t('signedInAs')}
+                        <TranslatedText
+                          textKey='signedInAs'
+                          fallback='Signed in as'
+                        />
                       </Typography>
                       <Typography variant='subtitle2' fontWeight={600} noWrap>
                         {user.displayName || user.email}
@@ -525,7 +545,9 @@ export default function Navbar() {
                         <Home color={isActive('/') ? 'primary' : 'inherit'} />
                       </ListItemIcon>
                       <ListItemText
-                        primary={t('home')}
+                        primary={
+                          <TranslatedText textKey='home' fallback='Home' />
+                        }
                         primaryTypographyProps={{
                           fontWeight: isActive('/') ? 600 : 400,
                           color: isActive('/')
@@ -558,7 +580,12 @@ export default function Navbar() {
                           />
                         </ListItemIcon>
                         <ListItemText
-                          primary={t('addService')}
+                          primary={
+                            <TranslatedText
+                              textKey='addService'
+                              fallback='Add Service'
+                            />
+                          }
                           primaryTypographyProps={{
                             fontWeight: isActive('/service/add') ? 600 : 400,
                             color: isActive('/service/add')
@@ -590,7 +617,12 @@ export default function Navbar() {
                           />
                         </ListItemIcon>
                         <ListItemText
-                          primary={t('adminPanel')}
+                          primary={
+                            <TranslatedText
+                              textKey='adminPanel'
+                              fallback='Admin Panel'
+                            />
+                          }
                           primaryTypographyProps={{
                             fontWeight: isActive('/admin') ? 600 : 400,
                             color: isActive('/admin')
@@ -625,7 +657,12 @@ export default function Navbar() {
                             />
                           </ListItemIcon>
                           <ListItemText
-                            primary={t('profile')}
+                            primary={
+                              <TranslatedText
+                                textKey='profile'
+                                fallback='Profile'
+                              />
+                            }
                             primaryTypographyProps={{
                               fontWeight: isActive('/profile') ? 600 : 400,
                               color: isActive('/profile')
@@ -656,7 +693,12 @@ export default function Navbar() {
                             />
                           </ListItemIcon>
                           <ListItemText
-                            primary={t('myReviews')}
+                            primary={
+                              <TranslatedText
+                                textKey='myReviews'
+                                fallback='My Reviews'
+                              />
+                            }
                             primaryTypographyProps={{
                               fontWeight: isActive('/my-reviews') ? 600 : 400,
                               color: isActive('/my-reviews')
@@ -682,7 +724,14 @@ export default function Navbar() {
                           <ListItemIcon>
                             <Logout sx={{ color: 'white' }} />
                           </ListItemIcon>
-                          <ListItemText primary={t('logout')} />
+                          <ListItemText
+                            primary={
+                              <TranslatedText
+                                textKey='logout'
+                                fallback='Logout'
+                              />
+                            }
+                          />
                         </ListItemButton>
                       </ListItem>
                     </>
@@ -705,7 +754,14 @@ export default function Navbar() {
                         <ListItemIcon>
                           <Login sx={{ color: 'white' }} />
                         </ListItemIcon>
-                        <ListItemText primary={t('signIn')} />
+                        <ListItemText
+                          primary={
+                            <TranslatedText
+                              textKey='signIn'
+                              fallback='Sign In'
+                            />
+                          }
+                        />
                       </ListItemButton>
                     </ListItem>
                   )}

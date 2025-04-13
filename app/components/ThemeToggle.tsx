@@ -6,12 +6,14 @@ import {
   DarkMode,
   LightMode,
 } from '@mui/icons-material';
+import { useThemeContext } from '@/lib/contexts/ThemeContext';
 
 export default function ThemeToggle() {
   const theme = useTheme();
   const [hovered, setHovered] = useState(false);
+  const { mode, toggleTheme } = useThemeContext();
 
-  const isDarkMode = theme.palette.mode === 'dark';
+  const isDarkMode = mode === 'dark';
 
   return (
     <Tooltip
@@ -21,6 +23,7 @@ export default function ThemeToggle() {
     >
       <IconButton
         color='inherit'
+        onClick={toggleTheme}
         sx={{
           position: 'relative',
           transition: theme.transitions.create(

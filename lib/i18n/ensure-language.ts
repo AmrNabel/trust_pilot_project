@@ -1,15 +1,24 @@
 // This script ensures language initialization happens properly
 // It runs on the client side to make sure language selection is maintained
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 
 export const useEnsureLanguage = () => {
   const { i18n } = useTranslation();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, isInitialized } = useLanguage();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set mounted state after initial render
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
+    // Only run synchronization after mounting and context initialization
+    if (!isMounted || !isInitialized) return;
+
     // Check if the language in i18n matches what we have in context
     const currentI18nLang = i18n.language.substring(0, 2);
     if (currentI18nLang !== language) {
@@ -26,7 +35,7 @@ export const useEnsureLanguage = () => {
         setLanguage('en');
       }
     }
-  }, [i18n.language, language, setLanguage]);
+  }, [i18n.language, language, setLanguage, isMounted, isInitialized]);
 };
 
 export default useEnsureLanguage;

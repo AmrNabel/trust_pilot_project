@@ -20,6 +20,7 @@ interface LanguageContextType {
   direction: Direction;
   toggleLanguage: () => void;
   setLanguage: (lang: Language) => void;
+  isInitialized: boolean;
 }
 
 // Create context
@@ -45,6 +46,9 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
+// Helper function to check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({
   children,
 }) => {
@@ -52,18 +56,44 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
   const [language, setLanguageState] = useState<Language>('en');
   const [direction, setDirection] = useState<Direction>('ltr');
   const [cache, setCache] = useState(ltrCache);
+  const [isInitialized, setIsInitialized] = useState(false);
+  // Track if component is mounted to avoid hydration issues
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Initial setup
+  // Set mounted state after hydration
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('i18nextLng');
-    if (savedLanguage) {
-      const lang = savedLanguage.substring(0, 2) as Language;
-      setLanguage(lang);
-    }
+    setIsMounted(true);
   }, []);
+
+  // Initial setup - only run in browser and after mounting
+  useEffect(() => {
+    if (isBrowser && isMounted) {
+      // Use a timeout to ensure this happens after hydration
+      const timer = setTimeout(() => {
+        const savedLanguage = localStorage.getItem('i18nextLng');
+        if (savedLanguage) {
+          const lang = savedLanguage.substring(0, 2) as Language;
+          if (lang === 'en' || lang === 'ar') {
+            setLanguage(lang);
+          } else {
+            setLanguage('en');
+          }
+        } else {
+          // Default to English if no language is set
+          setLanguage('en');
+        }
+        setIsInitialized(true);
+      }, 0);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isMounted]);
 
   // Set language and direction
   const setLanguage = (lang: Language) => {
+    // Only make changes in the browser
+    if (!isBrowser) return;
+
     setLanguageState(lang);
     i18n.changeLanguage(lang);
 
@@ -90,6 +120,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
         direction,
         toggleLanguage,
         setLanguage,
+        isInitialized,
       }}
     >
       <CacheProvider value={cache}>{children}</CacheProvider>
