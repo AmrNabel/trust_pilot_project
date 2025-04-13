@@ -98,8 +98,8 @@ export default function Home() {
           Find and Review Services
         </Typography>
 
-        {/* Add Service button for admins */}
-        {isAdmin && (
+        {/* Add Service button for any logged in user */}
+        {user && (
           <Button
             component={Link}
             href='/service/add'

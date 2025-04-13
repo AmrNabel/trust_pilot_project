@@ -30,6 +30,8 @@ export interface Service {
   averageRating?: number;
   reviewCount?: number;
   createdAt?: Timestamp;
+  pending?: boolean;
+  userId?: string;
 }
 
 // Review interface
@@ -46,9 +48,18 @@ export interface Review {
 }
 
 // Get all services
-export const getServices = async (): Promise<Service[]> => {
+export const getServices = async (
+  includePending: boolean = false
+): Promise<Service[]> => {
   const servicesCollection = collection(db, 'services');
-  const q = query(servicesCollection, orderBy('name'));
+  const constraints = [];
+
+  if (!includePending) {
+    // Only get approved services by default
+    constraints.push(where('pending', '==', false));
+  }
+
+  const q = query(servicesCollection, ...constraints, orderBy('name'));
   const snapshot = await getDocs(q);
 
   return snapshot.docs.map((doc) => {
@@ -186,7 +197,7 @@ export const updateServiceRating = async (serviceId: string): Promise<void> => {
 export const createService = async (
   serviceData: Omit<
     Service,
-    'id' | 'createdAt' | 'averageRating' | 'reviewCount'
+    'id' | 'createdAt' | 'averageRating' | 'reviewCount' | 'pending'
   >,
   imageFile?: File
 ): Promise<string> => {
@@ -195,6 +206,7 @@ export const createService = async (
     ...serviceData,
     averageRating: 0,
     reviewCount: 0,
+    pending: true, // New services are pending by default
     createdAt: serverTimestamp() as Timestamp,
   };
 
@@ -216,14 +228,15 @@ export const searchServices = async (
   searchTerm: string
 ): Promise<Service[]> => {
   if (!searchTerm.trim()) {
-    return getServices(); // Return all services if search term is empty
+    return getServices(); // Return all approved services if search term is empty
   }
 
   const searchTermLower = searchTerm.toLowerCase();
 
-  // Get all services first (could be optimized with Firestore indexing for larger applications)
+  // Get all approved services first
   const servicesCollection = collection(db, 'services');
-  const snapshot = await getDocs(servicesCollection);
+  const q = query(servicesCollection, where('pending', '==', false));
+  const snapshot = await getDocs(q);
 
   // Filter the services client-side based ONLY on the service name
   const filteredServices = snapshot.docs
@@ -231,4 +244,41 @@ export const searchServices = async (
     .filter((service) => service.name.toLowerCase().includes(searchTermLower));
 
   return filteredServices;
+};
+
+// Get pending services (for admin)
+export const getPendingServices = async (): Promise<Service[]> => {
+  const servicesCollection = collection(db, 'services');
+  const q = query(
+    servicesCollection,
+    where('pending', '==', true),
+    orderBy('createdAt', 'desc')
+  );
+
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => {
+    return { id: doc.id, ...doc.data() } as Service;
+  });
+};
+
+// Approve or reject a pending service
+export const updateServiceStatus = async (
+  serviceId: string,
+  approve: boolean
+): Promise<void> => {
+  const serviceRef = doc(db, 'services', serviceId);
+  const serviceSnap = await getDoc(serviceRef);
+
+  if (!serviceSnap.exists()) {
+    throw new Error('Service does not exist');
+  }
+
+  if (approve) {
+    // Approve the service
+    await updateDoc(serviceRef, { pending: false });
+  } else {
+    // Delete the service if not approved
+    await deleteDoc(serviceRef);
+  }
 };

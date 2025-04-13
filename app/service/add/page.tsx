@@ -177,6 +177,7 @@ export default function AddServicePage() {
           category,
           location: location.trim(),
           description: description.trim(),
+          userId: user.uid,
         },
         image || undefined
       );
@@ -192,9 +193,9 @@ export default function AddServicePage() {
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
 
-      // Redirect after 2 seconds
+      // Redirect after 2 seconds to home instead of service page since it's pending
       setTimeout(() => {
-        router.push(`/service/${serviceId}`);
+        router.push('/');
       }, 2000);
     } catch (err: any) {
       console.error('Error adding service:', err);
@@ -249,7 +250,7 @@ export default function AddServicePage() {
         Back to Services
       </Button>
 
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+      <Paper sx={{ p: 4, borderRadius: 2 }} elevation={3}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
           <AddBusiness fontSize='large' color='primary' />
           <Typography variant='h4' component='h1'>
@@ -257,16 +258,15 @@ export default function AddServicePage() {
           </Typography>
         </Box>
 
-        <Typography variant='body1' color='text.secondary' paragraph>
-          Create a new service that users can review. All fields are required
-          except image.
-        </Typography>
-
-        <Divider sx={{ my: 2 }} />
+        <Alert severity='info' sx={{ mb: 3 }}>
+          Your submission will be reviewed by our administrators before being
+          published. This typically takes 1-2 business days.
+        </Alert>
 
         {success ? (
           <Alert severity='success' sx={{ my: 2 }}>
-            Service created successfully! Redirecting to service page...
+            Service submitted successfully! It will be visible after admin
+            approval.
           </Alert>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -275,6 +275,13 @@ export default function AddServicePage() {
                 {error}
               </Alert>
             )}
+
+            <Typography variant='body1' color='text.secondary' paragraph>
+              Create a new service that users can review. All fields are
+              required except image.
+            </Typography>
+
+            <Divider sx={{ my: 2 }} />
 
             <TextField
               fullWidth
