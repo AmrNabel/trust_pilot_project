@@ -39,6 +39,18 @@ const SERVICE_CATEGORIES: ServiceCategory[] = [
   'Professional Services',
   'Travel',
   'Entertainment',
+  'Beauty & Spa',
+  'Automotive',
+  'Fitness',
+  'Construction',
+  'Legal Services',
+  'Cleaning Services',
+  'Pet Services',
+  'Event Planning',
+  'Photography',
+  'Barbers & Salons',
+  'Real Estate',
+  'Transportation',
   'Other',
 ];
 

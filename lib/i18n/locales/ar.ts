@@ -27,6 +27,11 @@ const arTranslation = {
   searchServices: 'ابحث عن خدمات حسب الاسم',
   noServicesFound: 'لم يتم العثور على خدمات تطابق معايير البحث.',
   backToServices: 'الرجوع إلى الخدمات',
+  filterByCategory: 'تصفية حسب الفئة',
+  allCategories: 'جميع الفئات',
+  clearFilters: 'مسح التصفية',
+  activeFilters: 'التصفية النشطة',
+  search: 'بحث',
 
   // Service creation
   addNewService: 'إضافة خدمة جديدة',
@@ -74,6 +79,18 @@ const arTranslation = {
   professionalServices: 'خدمات مهنية',
   travel: 'سفر',
   entertainment: 'ترفيه',
+  beautyAndSpa: 'الجمال والسبا',
+  automotive: 'السيارات',
+  fitness: 'اللياقة البدنية',
+  construction: 'البناء والتشييد',
+  legalServices: 'الخدمات القانونية',
+  cleaningServices: 'خدمات التنظيف',
+  petServices: 'خدمات الحيوانات الأليفة',
+  eventPlanning: 'تخطيط الفعاليات',
+  photography: 'التصوير الفوتوغرافي',
+  barbersAndSalons: 'الحلاقة والصالونات',
+  realEstate: 'العقارات',
+  transportation: 'النقل',
   other: 'أخرى',
 };
 

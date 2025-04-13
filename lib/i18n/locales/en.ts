@@ -27,6 +27,11 @@ const enTranslation = {
   searchServices: 'Search services by name',
   noServicesFound: 'No services found matching your search criteria.',
   backToServices: 'Back to Services',
+  filterByCategory: 'Filter by Category',
+  allCategories: 'All Categories',
+  clearFilters: 'Clear Filters',
+  activeFilters: 'Active Filters',
+  search: 'Search',
 
   // Service creation
   addNewService: 'Add New Service',
@@ -75,6 +80,18 @@ const enTranslation = {
   professionalServices: 'Professional Services',
   travel: 'Travel',
   entertainment: 'Entertainment',
+  beautyAndSpa: 'Beauty & Spa',
+  automotive: 'Automotive',
+  fitness: 'Fitness',
+  construction: 'Construction',
+  legalServices: 'Legal Services',
+  cleaningServices: 'Cleaning Services',
+  petServices: 'Pet Services',
+  eventPlanning: 'Event Planning',
+  photography: 'Photography',
+  barbersAndSalons: 'Barbers & Salons',
+  realEstate: 'Real Estate',
+  transportation: 'Transportation',
   other: 'Other',
 };
 

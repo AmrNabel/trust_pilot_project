@@ -225,10 +225,11 @@ export const createService = async (
 
 // Add this new function to search services
 export const searchServices = async (
-  searchTerm: string
+  searchTerm: string,
+  categoryFilter?: string
 ): Promise<Service[]> => {
-  if (!searchTerm.trim()) {
-    return getServices(); // Return all approved services if search term is empty
+  if (!searchTerm.trim() && !categoryFilter) {
+    return getServices(); // Return all approved services if no filters
   }
 
   const searchTermLower = searchTerm.toLowerCase();
@@ -238,10 +239,24 @@ export const searchServices = async (
   const q = query(servicesCollection, where('pending', '==', false));
   const snapshot = await getDocs(q);
 
-  // Filter the services client-side based ONLY on the service name
-  const filteredServices = snapshot.docs
-    .map((doc) => ({ id: doc.id, ...doc.data() } as Service))
-    .filter((service) => service.name.toLowerCase().includes(searchTermLower));
+  // Filter the services client-side based on name and category
+  let filteredServices = snapshot.docs.map(
+    (doc) => ({ id: doc.id, ...doc.data() } as Service)
+  );
+
+  // Apply search term filter if provided
+  if (searchTerm.trim()) {
+    filteredServices = filteredServices.filter((service) =>
+      service.name.toLowerCase().includes(searchTermLower)
+    );
+  }
+
+  // Apply category filter if provided
+  if (categoryFilter) {
+    filteredServices = filteredServices.filter(
+      (service) => service.category === categoryFilter
+    );
+  }
 
   return filteredServices;
 };
