@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -17,12 +17,14 @@ import {
   Stack,
   Divider,
   IconButton,
+  LinearProgress,
 } from '@mui/material';
 import {
   ArrowBack,
   Star,
   CloudUpload,
   Delete as DeleteIcon,
+  Warning,
 } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { getServiceById, getReviewById, updateReview } from '@/lib/firestore';
@@ -30,6 +32,7 @@ import { Service, Review } from '@/lib/firestore';
 import { FormSubmitEvent, RatingValue } from '@/types';
 import { styled } from '@mui/material/styles';
 import TranslatedText from '@/app/components/TranslatedText';
+import { ContentAnalysisResult } from '@/lib/perspective';
 
 // Custom styled component for file upload
 const VisuallyHiddenInput = styled('input')({
@@ -65,6 +68,15 @@ export default function EditReviewPage() {
   const [notFound, setNotFound] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
   const [removeExistingImage, setRemoveExistingImage] = useState(false);
+
+  // Content analysis state
+  const [analyzing, setAnalyzing] = useState(false);
+  const [contentFeedback, setContentFeedback] =
+    useState<ContentAnalysisResult | null>(null);
+  const [showContentWarning, setShowContentWarning] = useState(false);
+  const [flaggedWords, setFlaggedWords] = useState<string[]>([]);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const analyzeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Authentication check with delayed redirect to avoid flash
   useEffect(() => {
@@ -188,9 +200,77 @@ export default function EditReviewPage() {
     }
   };
 
+  // Debounced content analysis
+  const analyzeContent = useCallback(async (text: string) => {
+    if (text.length < 5) return; // Don't analyze very short text
+
+    if (analyzeTimeoutRef.current) {
+      clearTimeout(analyzeTimeoutRef.current);
+    }
+
+    analyzeTimeoutRef.current = setTimeout(async () => {
+      try {
+        setAnalyzing(true);
+        const response = await fetch('/api/content-analysis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text }),
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.result) {
+          setContentFeedback(data.result);
+          setShowContentWarning(!data.result.passed);
+          setFlaggedWords(data.result.flaggedWords || []);
+          setFeedbackMessage(data.details || null);
+        }
+      } catch (err) {
+        console.error('Error analyzing content:', err);
+        // Don't show error to user, just log it
+      } finally {
+        setAnalyzing(false);
+      }
+    }, 800); // Debounce time of 800ms
+  }, []);
+
+  // Analyze content when comment changes
+  useEffect(() => {
+    if (comment.length > 5) {
+      analyzeContent(comment);
+    } else {
+      setContentFeedback(null);
+      setShowContentWarning(false);
+    }
+
+    return () => {
+      if (analyzeTimeoutRef.current) {
+        clearTimeout(analyzeTimeoutRef.current);
+      }
+    };
+  }, [comment, analyzeContent]);
+
+  // Handle comment change
+  const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newComment = e.target.value;
+    setComment(newComment);
+    setError(null); // Clear general errors when comment changes
+  };
+
   // Handle form submission
   const handleSubmit = async (e: FormSubmitEvent) => {
     e.preventDefault();
+
+    // Check if content analysis detected inappropriate content
+    if (showContentWarning) {
+      const errorMessage =
+        feedbackMessage ||
+        'Your review may contain inappropriate content. Please revise your comment or try more neutral language.';
+      setError(errorMessage);
+      return;
+    }
 
     if (!navigator.onLine) {
       setError(
@@ -251,7 +331,7 @@ export default function EditReviewPage() {
       const errorMessage =
         err?.code === 'failed-precondition' || err?.message?.includes('offline')
           ? 'Failed to update review because you are offline. Please check your internet connection.'
-          : 'Failed to update review. Please try again.';
+          : err.message || 'Failed to update review. Please try again.';
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -576,16 +656,73 @@ export default function EditReviewPage() {
                 />
               </Box>
 
-              <TextField
-                fullWidth
-                label={<TranslatedText textKey='comment' fallback='Comment' />}
-                multiline
-                rows={4}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                required
-                placeholder='Share your experience with this service...'
-              />
+              <Box sx={{ position: 'relative' }}>
+                <TextField
+                  fullWidth
+                  label={
+                    <TranslatedText textKey='comment' fallback='Comment' />
+                  }
+                  multiline
+                  rows={4}
+                  value={comment}
+                  onChange={handleCommentChange}
+                  required
+                  placeholder='Share your experience with this service...'
+                  error={showContentWarning}
+                />
+
+                {/* Content analysis feedback */}
+                {analyzing && (
+                  <LinearProgress
+                    sx={{
+                      mt: 1,
+                      height: 4,
+                      borderRadius: 2,
+                    }}
+                  />
+                )}
+
+                {showContentWarning && (
+                  <Box sx={{ mt: 1 }}>
+                    <Alert
+                      severity='warning'
+                      icon={<Warning fontSize='inherit' />}
+                      sx={{ alignItems: 'center' }}
+                    >
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                        }}
+                      >
+                        <Box sx={{ fontWeight: 'bold', mb: 1 }}>
+                          <TranslatedText
+                            textKey='inappropriateContent'
+                            fallback='Your review may contain inappropriate language. Please edit your review to use more constructive language.'
+                          />
+                        </Box>
+                        {flaggedWords.length > 0 && (
+                          <Box sx={{ mt: 0.5 }}>
+                            <TranslatedText
+                              textKey='flaggedTerms'
+                              fallback='Flagged terms:'
+                            />
+                            :
+                            <Box
+                              component='span'
+                              sx={{ fontWeight: 'medium', color: 'error.main' }}
+                            >
+                              {flaggedWords.join(', ')}
+                            </Box>
+                          </Box>
+                        )}
+                      </Typography>
+                    </Alert>
+                  </Box>
+                )}
+              </Box>
 
               {renderImageSection()}
 
@@ -602,7 +739,7 @@ export default function EditReviewPage() {
                   type='submit'
                   variant='contained'
                   color='primary'
-                  disabled={loading}
+                  disabled={loading || showContentWarning}
                   startIcon={
                     loading ? (
                       <CircularProgress size={20} color='inherit' />
@@ -610,7 +747,7 @@ export default function EditReviewPage() {
                   }
                 >
                   <TranslatedText
-                    textKey='Update Review'
+                    textKey='updateReview'
                     fallback='Update Review'
                   />
                 </Button>

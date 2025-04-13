@@ -93,6 +93,18 @@ const enTranslation = {
   realEstate: 'Real Estate',
   transportation: 'Transportation',
   other: 'Other',
+
+  // Content moderation
+  inappropriateContent:
+    'Your review may contain inappropriate language. Please edit your review to use more constructive language.',
+  contentBeingAnalyzed: 'Analyzing your content...',
+  contentRejected:
+    'Your content contains inappropriate language and cannot be submitted.',
+  flaggedTerms: 'Flagged inappropriate terms',
+  egyptianDialectWarning:
+    'Your review contains inappropriate Egyptian dialect terms that are not allowed.',
+  moderationHelp:
+    'We encourage respectful and constructive feedback. Please avoid using negative or offensive language when describing your experience.',
 };
 
 export default enTranslation;

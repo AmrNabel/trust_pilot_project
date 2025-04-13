@@ -18,6 +18,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { db, storage } from './firebase';
+import { isContentAppropriate } from './perspective';
 
 // Service interface
 export interface Service {
@@ -126,6 +127,15 @@ export const createReview = async (
   review: Omit<Review, 'id' | 'createdAt' | 'pending'>,
   imageFile?: File
 ): Promise<string> => {
+  // First, check if the review comment is appropriate
+  const isAppropriate = await isContentAppropriate(review.comment);
+
+  if (!isAppropriate) {
+    throw new Error(
+      'Your review contains inappropriate content. Please revise your comment and try again.'
+    );
+  }
+
   // Prepare review data
   const reviewData: Omit<Review, 'id'> = {
     ...review,
@@ -329,6 +339,16 @@ export const updateReview = async (
 
   if (!reviewSnap.exists()) {
     throw new Error('Review does not exist');
+  }
+
+  // Check for inappropriate content if the comment is being updated
+  if (reviewData.comment) {
+    const isAppropriate = await isContentAppropriate(reviewData.comment);
+    if (!isAppropriate) {
+      throw new Error(
+        'Your review contains inappropriate content. Please revise your comment and try again.'
+      );
+    }
   }
 
   const currentReview = reviewSnap.data() as Review;

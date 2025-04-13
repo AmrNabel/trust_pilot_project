@@ -92,6 +92,17 @@ const arTranslation = {
   realEstate: 'العقارات',
   transportation: 'النقل',
   other: 'أخرى',
+
+  // Content moderation
+  inappropriateContent:
+    'قد تحتوي مراجعتك على لغة غير مناسبة. يرجى تعديل المراجعة لاستخدام لغة أكثر بناءً.',
+  contentBeingAnalyzed: 'جاري تحليل المحتوى الخاص بك...',
+  contentRejected: 'يحتوي المحتوى الخاص بك على لغة غير مناسبة ولا يمكن إرساله.',
+  flaggedTerms: 'المصطلحات غير اللائقة المرصودة',
+  egyptianDialectWarning:
+    'تحتوي مراجعتك على مصطلحات باللهجة المصرية غير مناسبة وغير مسموح بها.',
+  moderationHelp:
+    'نشجع على تقديم ملاحظات محترمة وبناءة. يرجى تجنب استخدام لغة سلبية أو مسيئة عند وصف تجربتك.',
 };
 
 export default arTranslation;

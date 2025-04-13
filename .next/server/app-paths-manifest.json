@@ -1,8 +1,5 @@
 {
-  "/page": "app/page.js",
-  "/review/edit/page": "app/review/edit/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/review/add/page": "app/review/add/page.js",
-  "/service/add/page": "app/service/add/page.js",
-  "/service/[id]/page": "app/service/[id]/page.js"
+  "/service/[id]/page": "app/service/[id]/page.js",
+  "/api/content-analysis/route": "app/api/content-analysis/route.js",
+  "/review/add/page": "app/review/add/page.js"
 }
