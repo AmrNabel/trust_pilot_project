@@ -30,6 +30,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { getServiceById, getReviewsByServiceId } from '@/lib/firestore';
 import { Service, Review } from '@/lib/firestore';
 import ReviewCard from '@/components/ReviewCard';
+import { useTranslation } from 'react-i18next';
 
 interface ServicePageProps {
   params: {
@@ -41,6 +42,7 @@ export default function ServicePage({ params }: ServicePageProps) {
   const { id } = params;
   const { user } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [service, setService] = useState<Service | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -135,6 +137,7 @@ export default function ServicePage({ params }: ServicePageProps) {
     imageUrl,
     averageRating = 0,
     reviewCount = 0,
+    distractions = [],
   } = service;
 
   return (
@@ -182,6 +185,32 @@ export default function ServicePage({ params }: ServicePageProps) {
           </Typography>
         </Box>
       </Box>
+
+      {/* District Section */}
+      {distractions && distractions.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant='subtitle1' fontWeight='medium' gutterBottom>
+            {t('District')}:
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {distractions.map((district: string) => (
+              <Chip
+                key={district}
+                label={district}
+                color='primary'
+                variant='outlined'
+                size='medium'
+                icon={<LocationOn />}
+                sx={{
+                  borderRadius: '4px',
+                  fontSize: '0.9rem',
+                  px: 1,
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
 
       {/* Service Image */}
       {imageUrl && (

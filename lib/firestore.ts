@@ -33,6 +33,7 @@ export interface Service {
   createdAt?: Timestamp;
   pending?: boolean;
   userId?: string;
+  distractions?: string[]; // Array of distraction types
 }
 
 // Review interface
@@ -218,6 +219,7 @@ export const createService = async (
     reviewCount: 0,
     pending: true, // New services are pending by default
     createdAt: serverTimestamp() as Timestamp,
+    distractions: serviceData.distractions || [], // Make sure distractions is always an array
   };
 
   // Upload image if provided

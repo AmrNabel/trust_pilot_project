@@ -53,3 +53,17 @@ export type InputChangeEvent =
   | React.ChangeEvent<HTMLTextAreaElement>;
 
 export type FormSubmitEvent = React.FormEvent<HTMLFormElement>;
+
+// Distraction type for identifying service distractions
+export type DistractionType =
+  | 'Noise'
+  | 'Delay'
+  | 'Crowded'
+  | 'Poor Service'
+  | 'Unavailable Items'
+  | 'Cleanliness'
+  | 'Temperature'
+  | 'Accessibility'
+  | 'Parking'
+  | 'Long Wait Time'
+  | 'Other';

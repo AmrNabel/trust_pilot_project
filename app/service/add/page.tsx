@@ -20,12 +20,20 @@ import {
   Select,
   FormHelperText,
   IconButton,
+  Chip,
 } from '@mui/material';
-import { ArrowBack, AddBusiness, Upload, Delete } from '@mui/icons-material';
+import {
+  ArrowBack,
+  AddBusiness,
+  Upload,
+  Delete,
+  LocationOn,
+} from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { createService } from '@/lib/firestore';
 import { FormSubmitEvent, ServiceCategory } from '@/types';
 import { useTranslation } from 'react-i18next';
+import { districts } from '@/lib/data/districts';
 
 // Array of service categories
 const SERVICE_CATEGORIES: ServiceCategory[] = [
@@ -65,7 +73,7 @@ const ALLOWED_FILE_TYPES = [
 ];
 
 export default function AddServicePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,11 +86,16 @@ export default function AddServicePage() {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [distraction, setDistraction] = useState<string>('');
 
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Get current language districts
+  const currentLanguage = i18n.language || 'en';
+  const currentDistricts = districts[currentLanguage === 'ar' ? 'ar' : 'en'];
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -156,6 +169,7 @@ export default function AddServicePage() {
       name.trim() !== '' &&
       location.trim() !== '' &&
       description.trim() !== '' &&
+      distraction !== '' && // District is now required
       !imageError
     );
   };
@@ -185,6 +199,9 @@ export default function AddServicePage() {
       setLoading(true);
       setError(null);
 
+      // Create an array with the selected district
+      const distractions = [distraction];
+
       const serviceId = await createService(
         {
           name: name.trim(),
@@ -192,6 +209,7 @@ export default function AddServicePage() {
           location: location.trim(),
           description: description.trim(),
           userId: user.uid,
+          distractions,
         },
         image || undefined
       );
@@ -205,6 +223,7 @@ export default function AddServicePage() {
       setDescription('');
       setImage(null);
       setImagePreview(null);
+      setDistraction('');
       if (fileInputRef.current) fileInputRef.current.value = '';
 
       // Redirect after 2 seconds to home instead of service page since it's pending
@@ -281,7 +300,7 @@ export default function AddServicePage() {
             {t('serviceSubmitted')}
           </Alert>
         ) : (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             {error && (
               <Alert severity='error' sx={{ mb: 3 }}>
                 {error}
@@ -345,6 +364,64 @@ export default function AddServicePage() {
               inputProps={{ maxLength: 500 }}
               helperText={`${description.length}/500 ${t('characters')}`}
             />
+
+            {/* District selection */}
+            <Box sx={{ mt: 3 }}>
+              <Typography variant='h6' gutterBottom>
+                {t('Select District')}
+              </Typography>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
+                {t('Select the district where this service is located')}
+              </Typography>
+
+              <FormControl
+                fullWidth
+                margin='normal'
+                required
+                error={distraction === '' && error !== null}
+              >
+                <InputLabel id='district-label'>{t('District')}</InputLabel>
+                <Select
+                  labelId='district-label'
+                  value={distraction}
+                  label={t('District')}
+                  onChange={(e) => setDistraction(e.target.value)}
+                  startAdornment={
+                    distraction ? (
+                      <LocationOn color='action' sx={{ ml: 1, mr: 0.5 }} />
+                    ) : null
+                  }
+                >
+                  <MenuItem value=''>
+                    <em>{t('Select a district')}</em>
+                  </MenuItem>
+                  {currentDistricts.map((district: string) => (
+                    <MenuItem key={district} value={district}>
+                      {district}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  {distraction === '' && error !== null
+                    ? t('District is required')
+                    : t('Select the district for this service')}
+                </FormHelperText>
+              </FormControl>
+
+              {distraction && (
+                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+                  <Typography variant='body2' sx={{ mr: 1 }}>
+                    {t('Selected district:')}
+                  </Typography>
+                  <Chip
+                    label={distraction}
+                    color='primary'
+                    icon={<LocationOn />}
+                    onDelete={() => setDistraction('')}
+                  />
+                </Box>
+              )}
+            </Box>
 
             {/* Image Upload Section */}
             <Box sx={{ mt: 3, mb: 2 }}>
